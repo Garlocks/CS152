@@ -24,13 +24,15 @@
 
 %token FUNCTION BEGIN_PARAMS END_PARAMS BEGIN_LOCALS END_LOCALS BEGIN_BODY END_BODY 
 %token INTEGER ARRAY OF IF THEN ENDIF ELSE WHILE DO FOR BEGINLOOP ENDLOOP 
-%token CONTINUE READ WRITE AND OR NOT TRUE FALSE RETURN
-
+%token CONTINUE READ WRITE AND OR  TRUE FALSE RETURN
+%right NOT
 %token NUMBER IDENT
 
-%token SUB ADD MULT DIV MOD
-%token EQ NEQ LT GT LTE GTE
-%token SEMICOLON COLON COMMA L_PAREN R_PAREN L_SQUARE_BRACKET R_SQUARE_BRACKET ASSIGN
+%left SUB ADD MULT DIV MOD
+%left EQ  LT GT LTE GTE
+%right NEQ
+%left SEMICOLON COLON COMMA L_PAREN R_PAREN L_SQUARE_BRACKET R_SQUARE_BRACKET 
+%right ASSIGN
 %token <iVal> NUMBERS 
 %token <cVal> IDENTS
 
@@ -98,11 +100,17 @@ statement:			s1
 s1:					var ASSIGN expression
 					{printf("s1 > var ASSIGN expression \n");};
 
-s2:					IF bool_expr THEN state_loop ENDIF 
-					{printf("s2 > IF bool_expr THEN state_loop ENDIF \n");}
+s2:					IF bool_expr THEN state_loop s2_1
+					{printf("s2 > IF bool_expr THEN state_loop s2_1 \n");};
+					
+s2_1:				ENDIF 
+					{printf("s2_1 > ENDIF \n");}
 					|
-					IF bool_expr THEN state_loop ELSE state_loop ENDIF
-					{printf("s2 > IF cbool_expr THEN state_loop ELSE state_loop ENDIF \n");};
+					s2_2
+					{printf("s2_1 > s2_2 \n");};
+
+s2_2:				ELSE state_loop ENDIF
+					{printf("s2_2 > ELSE state_loop ENDIF \n");};
 
 s3:					WHILE bool_expr BEGINLOOP state_loop ENDLOOP
 					{printf("s3 > WHILE bool_expr BEGINLOOP state_loop ENDLOOP \n");};
@@ -134,29 +142,27 @@ var_loop:			var COMMA var_loop
 bool_expr:			r_a_e rae_loop
 					{printf("bool_expr > r_a_e rae_loop \n");};
 
-rae_loop:			rae_loop OR r_a_e
-					{printf("rae_loop > rae_loop OR r_a_e \n");}
+rae_loop:			OR r_a_e rae_loop
+					{printf("rae_loop > OR r_a_e rae_loop \n");}
 					|
 					{printf("rae_loop > epsilon \n");};
 
 r_a_e:				r_e re_loop
 					{printf("r_a_e > r_e re_loop \n");};
 
-re_loop:			re_loop AND r_e
-					{printf("re_loop > re_loop AND r_e \n");}
+re_loop:			AND r_e re_loop
+					{printf("re_loop > AND r_e re_loop \n");}
 					|
 					{printf("re_loop > epsilon \n");};
 
-r_e:				not_detour re_choice
-					{printf("r_e > not_detour re_choice \n");};
-
-not_detour:			NOT
-					{printf("not_detour > NOT \n");};
+r_e:				NOT re_choice
+					{printf("r_e > NOT re_choice \n");}
 					|
-					{printf("not_detour > epsilon \n");};
+					re_choice
+					{printf("r_e > re_choice \n");};
 
-re_choice:			expression comp expression
-					{printf("re_choice > expression comp expression \n");}
+re_choice:			L_PAREN bool_expr R_PAREN
+					{printf("re_choice > L_PAREN bool_expr R_PAREN \n");}
 					|
 					TRUE
 					{printf("re_choice > TRUE \n");}
@@ -164,8 +170,8 @@ re_choice:			expression comp expression
 					FALSE
 					{printf("re_choice > FALSE \n");}
 					|
-					L_PAREN bool_expr R_PAREN
-					{printf("re_choice > L_PAREN bool_expr R_PAREN \n");};
+					expression comp expression
+					{printf("re_choice > expression comp expression \n");};
 
 comp:				EQ
 					{printf("comp > EQ \n");}
@@ -199,14 +205,14 @@ mult_expr_loop:		ADD mult_expr mult_expr_loop
 mult_expr:			term term_loop
 					{printf("mult_expr > term term_loop \n");};
 
-term_loop:			MULT term term_loop
-					{printf("term_loop > MULT term term_loop \n");}
+term_loop:			MULT mult_expr
+					{printf("term_loop > MULT mult_expr \n");}
 					|
-					DIV term term_loop
-					{printf("term_loop > DIV term term_loop \n");}
+					DIV mult_expr
+					{printf("term_loop > DIV mult_expr \n");}
 					|
-					MOD term term_loop
-					{printf("term_loop > MOD term term_loop \n");}
+					MOD mult_expr
+					{printf("term_loop > MOD mult_expr \n");}
 					|
 					{printf("term_loop > epsilon \n");};
 
@@ -228,16 +234,18 @@ term1:				var
 					L_PAREN expression R_PAREN
 					{printf("term1 > L_PAREN expression R_PAREN \n");};
 
-term2:				IDENT L_PAREN exp_loop R_PAREN
-					{printf("term2 > IDENT L_PAREN exp_loop R_PAREN \n");};
+term2:				IDENT L_PAREN term2_1 R_PAREN
+					{printf("term2 > IDENT L_PAREN term2_1 R_PAREN \n");};
 
-exp_loop:			expression
-					{printf("exp_loop > expression \n");}
+term2_1:			expression term2_2
+					{printf("term2_1 > expression term2_2 \n");}
 					|
-					expression COMMA exp_loop
-					{printf("exp_loop > expression COMMA exp_loop \n");}
+					{printf("term2_1 > epsilon \n");};
+
+term2_2:			COMMA term2_1
+					{printf("term2_2 > COMMA term2_1 \n");}
 					|
-					{printf("exp_loop > epsilon \n");};
+					{printf("term2_2 > epsilon \n");};
 
 var:				IDENT
 					{printf("var > IDENT \n");}
