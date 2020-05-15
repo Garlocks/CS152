@@ -111,7 +111,7 @@ s4:					DO BEGINLOOP state_loop ENDLOOP WHILE bool_expr
 					{printf("s4 > DO BEGINLOOP state_loop ENDLOOP WHILE bool_expr \n");};
 
 s5:					FOR var ASSIGN NUMBER SEMICOLON bool_expr SEMICOLON var ASSIGN expression BEGINLOOP state_loop ENDLOOP
-					{printf("s5 > FOR var ASSIGN NUMBER SEMICOLON boolexpr SEMICOLON var ASSIGN expression BEGINLOOP state_loop ENDLOOP \n");};
+					{printf("s5 > FOR var ASSIGN NUMBER SEMICOLON bool_expr SEMICOLON var ASSIGN expression BEGINLOOP state_loop ENDLOOP \n");};
 
 s6789:				READ var_loop
 					{printf("s6789 > READ var_loop \n");}
@@ -210,8 +210,11 @@ term_loop:			MULT term term_loop
 					|
 					{printf("term_loop > epsilon \n");};
 
-term:				not_detour term1
-					{printf("term > not_detour term1 \n");}
+term:				term1
+					{printf("term > term1 \n");}
+					|
+					SUB term1
+					{printf("term > SUB term1 \n");}
 					|
 					term2
 					{printf("term > term2 \n");};
@@ -250,36 +253,23 @@ var_detour:			L_SQUARE_BRACKET expression R_SQUARE_BRACKET
 %%
 
 int main (int argc, char ** argv) {
-	printf("help0\n");
 	if(argc >= 2) {
-		printf("help1\n"); 
 		yyin = fopen(argv[1], "r");
 		if (yyin == NULL) {
-			printf("help2\n"); 
 			yyin = stdin;
 		}
 	} else {
-		printf("help3\n"); 
 		yyin = stdin;
 	}
-	printf("help4\n");
 	yyparse();
 	sleep(1); 
 }
 
-/*
-int yyerror(char *s) {
-  extern int yylineno;
-  extern char *yytext;
-  printf("ERROR: %s at symbol %s", s, yytext);
-  printf(" on line %d \n", yylineno);
-}
-*/
+
 int yyerror(char *s)
 {
 extern int currline;
 extern int currpos;
     printf(">>> Line %d, position %d: %s\n",currline,currpos,s);
-    //return yyerror(string(s));
 }
 
