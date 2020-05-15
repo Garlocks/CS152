@@ -1,207 +1,98 @@
-PROGRAM:			function Program
+program>			function program | epsilon
+
+function>			FUNCTION IDENT SEMICOLON BEGIN_PARAMS declare_loop END_PARAMS BEGIN_LOCALS declare_loop END_LOCALS BEGIN_BODY state_loop END_BODY
+					  
+
+declare_loop>		declare_loop declaration SEMICOLON | epsilon
+
+state_loop>			statement SEMICOLON state_loop2
+					  					
 					
-					|
-					epsilon
+state_loop2>		statement SEMICOLON state_loop2 | epsilon
 
-function:			FUNCTION IDENT SEMICOLON BEGIN_PARAMS declare_loop END_PARAMS BEGINLOCALS declare_loop END_LOCALS BEGIN_BODY state_loop END_BODY
+declaration>		ident_loop COLON declare_detour INTEGER
+					  
+
+declare_detour>		ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET declare_detour2 OF | epsilon
+
+declare_detour2>	L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET | epsilon
+
+ident_loop>			IDENT COMMA ident_loop | IDENT
+					  
+
+statement>			s1 | s2 | s3 | s4 | s5 | s6789
+					  
+
+s1>					var ASSIGN expression
+					  
+
+s2>					IF bool_expr THEN state_loop s2_1
+					  
 					
+s2_1>				ENDIF | s2_2
+					  
 
-declare_loop:		declare_loop declaration SEMICOLON 
-					
-					|
-					epsilon
+s2_2>				ELSE state_loop ENDIF
+					  
 
-state_loop:			statement SEMICOLON state_loop2
-										
-					
-state_loop2:		statement SEMICOLON state_loop2
-					
-					|
-					epsilon
+s3>					WHILE bool_expr BEGINLOOP state_loop ENDLOOP
+					  
 
-declaration:		ident_loop COLON declare_detour INTEGER
-					
+s4>					DO BEGINLOOP state_loop ENDLOOP WHILE bool_expr
+					  
 
-declare_detour:		ARRAY L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET declare_detour2 OF
-					
-					|
-					epsilon
+s5>					FOR var ASSIGN NUMBER SEMICOLON bool_expr SEMICOLON var ASSIGN expression BEGINLOOP state_loop ENDLOOP
+					  
 
-declare_detour2:	L_SQUARE_BRACKET NUMBER R_SQUARE_BRACKET
-					
-					|
-					epsilon
+s6789>				READ var_loop | WRITE var_loop | CONTINUE | RETURN expression
+					  
 
-ident_loop:			IDENT COMMA ident_loop
-					
-					|
-					IDENT
+var_loop>			var COMMA var_loop | var
+					  
 
+bool_expr>			r_a_e rae_loop
+					  
 
-statement:			s1
-					
-					|
-					s2
+rae_loop>			OR r_a_e rae_loop | epsilon
 
-					|
-					s3
+r_a_e>				r_e re_loop
+					  
 
-					|
-					s4
+re_loop>			AND r_e re_loop | epsilon
 
-					|
-					s5
+r_e>				NOT re_choice | re_choice
+					  
 
-					|
-					s6789
+re_choice>			L_PAREN bool_expr R_PAREN | TRUE | FALSE | expression comp expression
+					  
 
+comp>				EQ | NEQ | LT | GT | LTE | GTE
+					  
 
-s1:					var ASSIGN expression
-					
+expression>			mult_expr mult_expr_loop
+					  
 
-s2:					IF bool_expr THEN state_loop ENDIF 
-					
-					|
-					IF cbool_expr THEN state_loop ELSE state_loop ENDIF
+mult_expr_loop>		ADD mult_expr mult_expr_loop | SUB mult_expr mult_expr_loop | epsilon
 
+mult_expr>			term term_loop
+					  
 
-s3:					WHILE bool_expr BEGINLOOP state_loop ENDLOOP
-					
+term_loop>			MULT mult_expr | DIV mult_expr | MOD mult_expr | epsilon
 
-s4:					DO BEGINLOOP state_loop ENDLOOP WHILE bool_expr
-					
+term>				term1 | SUB term1 | term2
+					  
 
-s5:					FOR var ASSIGN NUMBER SEMICOLON boolexpr SEMICOLON var ASSIGN expression BEGINLOOP state_loop ENDLOOP
+term1>				var | NUMBER | L_PAREN expression R_PAREN
+					  
 
+term2>				IDENT L_PAREN term2_1 R_PAREN
+					  
 
-s6789:				READ var_loop
-					
-					|
-					WRITE var_loop
+term2_1>			expression term2_2 | epsilon
 
-					|
-					CONTINUE
+term2_2>			COMMA term2_1 | epsilon
 
-					|
-					RETURN expression
+var>				IDENT | IDENT L_SQUARE_BRACKET expression R_SQUARE_BRACKET var_detour
+					  
 
-
-var_loop:			var COMMA var_loop
-					
-					|
-					var
-
-
-bool_expr:			r_a_e rae_loop
-					
-
-rae_loop:			rae_loop OR r_a_e
-					
-					|
-					epsilon
-
-r_a_e:				r_e re_loop
-					
-
-re_loop:			re_loop AND r_e
-					
-					|
-					epsilon
-
-r_e:				not_detour re_choice
-					
-
-not_detour:			NOT
-					
-					|
-					epsilon
-
-re_choice:			expression comp expression
-					
-					|
-					TRUE
-
-					|
-					FALSE
-
-					|
-					L_PAREN bool_expr R_PAREN
-
-
-comp:				EQ
-					
-					|
-					NEQ
-
-					|
-					LT
-
-					|
-					GT
-
-					|
-					LTE
-
-					|
-					GTE
-
-
-expression:			mult_expr mult_expr_loop
-					
-
-mult_expr_loop:		ADD mult_expr mult_expr_loop
-					
-					|
-					SUB mult_expr mult_expr_loop
-
-					|
-					epsilon
-
-mult_expr:			term term_loop
-					
-
-term_loop:			MULT term term_loop
-					
-					|
-					DIV term term_loop
-
-					|
-					MOD term term_loop
-
-
-term:				not_detour term1
-					
-					|
-					term2
-
-
-term1:				var
-					
-					|
-					NUMBER
-
-					|
-					L_PAREN expression R_PAREN
-
-
-term2:				IDENT L_PAREN exp_loop R_PAREN
-					
-
-exp_loop:			expression
-					
-					|
-					expression COMMA exp_loop
-
-					|
-					epsilon
-
-var:				IDENT
-					
-					|
-					IDENT L_SQUARE_BRACKET expression R_SQUARE_BRACKET var_detour
-
-
-var_detour:			L_SQUARE_BRACKET expression R_SQUARE_BRACKET
-					
-					|
-					epsilon
+var_detour>			L_SQUARE_BRACKET expression R_SQUARE_BRACKET | epsilon
